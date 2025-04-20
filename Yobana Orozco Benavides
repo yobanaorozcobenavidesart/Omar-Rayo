@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Memorama Museo El Rayo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Explorando Museos Nacionales de Colombia</h1>
+    <p>¡Disfruta de este memorama interactivo y aprende sobre el arte colombiano!</p>
+  </header>
+
+  <main>
+    <div id="game-board" class="board"></div>
+    <div id="info" class="info-box"></div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Derechos de autor: Yobana Orozco Benavides</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #f9f9f9;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, 120px);
+  grid-gap: 15px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.card {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  cursor: pointer;
+  perspective: 1000px;
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  backface-visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotateY(180deg);
+  transition: transform 0.6s;
+}
+
+.card .back {
+  background-color: #333;
+  color: white;
+  width: 100%;
+  height: 100%;
+  font-size: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  backface-visibility: hidden;
+  transform: rotateY(0deg);
+  transition: transform 0.6s;
+}
+
+.card.flipped .front {
+  transform: rotateY(0deg);
+}
+
+.card.flipped .back {
+  transform: rotateY(180deg);
+}
+
+footer {
+  margin-top: 50px;
+  font-size: 0.9em;
+  color: #555;
+}
+const cardsData = [
+  { img: 'arte1.jpg', info: 'Obra 1: "Mariposa" por Omar Rayo.' },
+  { img: 'arte2.jpg', info: 'Obra 2: "Geometría" por Omar Rayo.' },
+  { img: 'arte3.jpg', info: 'Obra 3: "Foto" de Omar Rayo.' },
+  { img: 'arte4.jpg', info: 'Obra 4: "Entrada al museo" de Omar Rayo.' }
+];
+
+const gameBoard = document.getElementById('game-board');
+const infoBox = document.getElementById('info');
+
+let cards = [];
+let firstCard = null;
+let lockBoard = false;
+
+function createCardElement(cardData, index) {
+  const card = document.createElement('div');
+  card.classList.add('card');
+  card.dataset.index = index;
+
+  const front = document.createElement('img');
+  front.src = cardData.img;
+  front.classList.add('front');
+
+  const back = document.createElement('div');
+  back.classList.add('back');
+  back.textContent = '?';
+
+  card.appendChild(front);
+  card.appendChild(back);
+
+  card.addEventListener('click', flipCard);
+  return card;
+}
+
+function initGame() {
+  const doubledCards = [...cardsData, ...cardsData];
+  const shuffled = doubledCards.sort(() => 0.5 - Math.random());
+
+  shuffled.forEach((cardData, index) => {
+    const cardElement = createCardElement(cardData, index);
+    cardElement.dataset.info = cardData.info;
+    gameBoard.appendChild(cardElement);
+    cards.push(cardElement);
+  });
+}
+
+function flipCard() {
+  if (lockBoard || this.classList.contains('matched') || this === firstCard) return;
+
+  this.classList.add('flipped');
+
+  if (!firstCard) {
+    firstCard = this;
+  } else {
+    const secondCard = this;
+    if (firstCard.querySelector('.front').src === secondCard.querySelector('.front').src) {
+      firstCard.classList.add('matched');
+      secondCard.classList.add('matched');
+      infoBox.textContent = secondCard.dataset.info;
+      firstCard = null;
+    } else {
+      lockBoard = true;
+      setTimeout(() => {
+        firstCard.classList.remove('flipped');
+        secondCard.classList.remove('flipped');
+        firstCard = null;
+        lockBoard = false;
+      }, 1000);
+    }
+  }
+}
+
+initGame();
